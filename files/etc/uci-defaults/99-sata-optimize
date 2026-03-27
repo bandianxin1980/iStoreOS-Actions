@@ -1,0 +1,34 @@
+#!/bin/sh
+
+# 强制SATA性能模式、关闭节能、提升I/O性能
+
+# 给 sda sdb 启用性能模式
+for disk in sda sdb; do
+  if [ -b /dev/$disk ]; then
+    # I/O 调度器 deadline（最快）
+    echo deadline > /sys/block/$disk/queue/scheduler
+
+    # 队列深度拉满
+    echo 256 > /sys/block/$disk/queue/nr_requests
+
+    # 预读加大
+    echo 4096 > /sys/block/$disk/queue/read_ahead_kb
+
+    # 关闭省电
+    echo 0 > /sys/block/$disk/queue/power_save
+    echo 0 > /sys/block/$disk/device/power/control
+    echo 0 > /sys/block/$disk/device/power/level
+  fi
+done
+
+# 系统 I/O 优化
+echo 80 > /proc/sys/vm/dirty_ratio
+echo 20 > /proc/sys/vm/dirty_background_ratio
+echo 500 > /proc/sys/vm/dirty_writeback_centisecs
+
+# ZRAM 优化
+echo lz4 > /sys/block/zram0/comp_algorithm
+echo 2048M > /sys/block/zram0/disksize
+
+# 完成
+exit 0
