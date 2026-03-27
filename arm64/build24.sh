@@ -33,7 +33,20 @@ echo "$(date '+%Y-%m-%d %H:%M:%S') - 开始构建固件..."
 # ============= 若启用 则打开注释 ============================
 
 # 定义初始化变量
-PACKAGES=""
+# 移除大量无用驱动，减轻内核负载
+PACKAGES="-kmod-ath -kmod-ath10k -kmod-ath11k -kmod-ath12k"
+PACKAGES="$PACKAGES -kmod-rtl8xxxu -kmod-rtlwifi -kmod-rtw88 -kmod-rtw89"
+PACKAGES="$PACKAGES -kmod-bnx2x -kmod-mlx4-core -kmod-mlx5-core -kmod-qed"
+PACKAGES="$PACKAGES -kmod-sound-core -kmod-input-core -kmod-video-core"
+PACKAGES="$PACKAGES -kmod-net-selftests -kmod-wireguard"
+PACKAGES="$PACKAGES -kmod-iwlwifi -kmod-mt76 -kmod-mt79 -kmod-mwifiex"
+PACKAGES="$PACKAGES -kmod-octeontx2-net -kmod-iavf -kmod-ixgbe"
+PACKAGES="$PACKAGES -kmod-fsl-dpaa1-net -kmod-fsl-dpaa2-net -kmod-fsl-enetc-net"
+
+# 确保 SATA 核心驱动保留
+PACKAGES="$PACKAGES kmod-ata-core kmod-ata-ahci kmod-ata-dwc kmod-scsi-core"
+PACKAGES="$PACKAGES kmod-usb-storage kmod-usb-storage-uas"
+
 
 # iStoreOS官方集成列表，若启用则打开注释
 #PACKAGES="$PACKAGES adb"
