@@ -21,9 +21,9 @@ jobs:
 
       - name: Download iStoreOS ImageBuilder
         run: |
-          wget https://github.com/istoreos/istoreos/releases/download/24.10/istoreos-imagebuilder-24.10-rockchip-armv8-generic.tar.xz
-          tar -xf istoreos-imagebuilder-*.tar.xz
-          mv istoreos-imagebuilder-* ib
+          wget https://codeload.github.com/istoreos/istoreos/tar.gz/refs/tags/v24.10.0-rc5.tar.gz -O istoreos-v24.10.0-rc5.tar.gz
+          tar -xf istoreos-v24.10.0-rc5.tar.gz
+           mv istoreos-* ib
 
       - name: Run your build script
         run: |
