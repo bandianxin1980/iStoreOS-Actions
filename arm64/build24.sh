@@ -1,5 +1,6 @@
 #!/bin/bash
 # 此脚本在Imagebuilder 根目录运行
+chmod +x files/etc/uci-defaults/99-sata-optimize
 source custom-packages.sh
 echo "第三方软件包: $CUSTOM_PACKAGES"
 LOGFILE="/tmp/uci-defaults-log.txt"
