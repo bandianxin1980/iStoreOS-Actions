@@ -1,0 +1,116 @@
+name: 💿 St2_Build-iStoreOS-ib
+on:
+  repository_dispatch:
+  workflow_dispatch:
+    inputs:
+      openwrt_board:
+        description: "请选择设备型号"
+        required: true
+        default: "bdkj-bd-one"
+        type: choice
+        options:
+          - bdkj-bd-one
+      openwrt_kernel:
+        description: "请选择内核版本"
+        required: true
+        default: "6.6.y"
+        type: choice
+        options:
+          - 6.6.y
+          - 6.12.y
+          - 6.18.y
+      auto_kernel:
+        description: "自动使用最新内核-未匹配则自动"
+        required: false
+        default: true
+        type: boolean
+      openwrt_rootfs:
+        description: "请选择Rootfs通用底包"
+        required: true
+        default: "RELEASE"
+        type: choice
+        options:
+          - RELEASE
+      network_settings:
+        description: "请选择初始网络配置"
+        required: true
+        default: "dhcp"
+        type: choice
+        options:
+          - static
+          - dhcp
+
+env:
+  VERSION: 24.10.5
+
+jobs:
+  build:
+    runs-on: ubuntu-22.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: ⏬ 下载 rootfs.tar.gz
+        run: |
+          echo "📦 正在下载预构建 rootfs"
+          mkdir -p bin/targets/armsr/armv8
+          curl -L -o bin/targets/armsr/armv8/openwrt-armvirt-64-default-rootfs.tar.gz \
+            https://github.com/${{ github.actor }}/iStoreOS-Actions/releases/download/iStoreOS-${{ env.VERSION }}-${{ inputs.openwrt_rootfs }}-${{ inputs.network_settings }}/istoreos-armsr-armv8-generic-rootfs.tar.gz
+
+      - name: 🔍 查找rootfs.tar.gz所在路径
+        id: find_rootfs
+        run: |
+          ROOTFS_FILE=$(find bin/targets/armsr/armv8/ -type f -name "*rootfs.tar.gz" | head -n1)
+          echo "✅ Found: $ROOTFS_FILE"
+          if [ ! -f "$ROOTFS_FILE" ]; then
+            echo "❌ 找不到 rootfs.tar.gz 文件，请先运行 St1"
+            exit 1
+          fi
+          echo "file=$ROOTFS_FILE" >> $GITHUB_OUTPUT
+
+      - name: 🧱 打包iStoreOS固件
+        uses: ophub/amlogic-s9xxx-openwrt@main
+        with:
+          openwrt_path: ${{ steps.find_rootfs.outputs.file }}
+          openwrt_board: ${{ inputs.openwrt_board }}
+          openwrt_kernel: ${{ inputs.openwrt_kernel }}
+          auto_kernel: ${{ inputs.auto_kernel }}
+          kernel_repo: ophub/kernel
+          kernel_usage: stable
+          builder_name: kwonelee
+
+      - name: 📜 调整.img.gz 文件名
+        id: rename
+        run: |
+          for FILE in ${{ env.PACKAGED_OUTPUTPATH }}/*.img.gz; do
+            echo "Processing file: $FILE"
+            FILENAME=$(basename "$FILE")
+            NEW_FILENAME=$(echo "$FILENAME" | sed 's/openwrt/istoreos_${{ env.VERSION }}/g')
+            if [ "$FILENAME" != "$NEW_FILENAME" ]; then
+              mv "$FILE" "${{ env.PACKAGED_OUTPUTPATH }}/$NEW_FILENAME"
+              echo "Renamed $FILENAME to $NEW_FILENAME"
+            else
+              echo "No need to rename $FILENAME"
+            fi
+          done
+
+      - name: 🚀 上传到 Release
+        uses: softprops/action-gh-release@v2.2.1
+        with:
+          tag_name: iStoreOS-${{ env.VERSION }}-${{ inputs.openwrt_rootfs }}-${{ inputs.network_settings }}
+          body: |
+            📌 版本： iStoreOS-${{ env.VERSION }}-RELEASE（imagebuilder构建，仅 BD-ONE）
+
+            📂 来源： https://fw.koolcenter.com/iStoreOS/ib/armsr/
+
+            🧩 集成： 基础系统 + Docker + iStore + Samba + 网络共享
+
+            👤 用户名： root
+
+            🔒 密码： 无
+
+            🌐 IP： 多网口-IP：192.168.100.1
+          files: |
+            ${{ env.PACKAGED_OUTPUTPATH }}/*.img.gz
+        env:
+          GITHUB_TOKEN: ${{ secrets.GH_TOKEN }}
