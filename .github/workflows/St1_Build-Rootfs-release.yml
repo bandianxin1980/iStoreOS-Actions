@@ -68,6 +68,12 @@ jobs:
         sudo apt-get update
         sudo apt-get install -y build-essential libncurses5-dev zstd curl unzip tree
 
+    - name: 🧹 清理磁盘空间
+      run: |
+        sudo apt-get clean
+        sudo rm -rf /var/lib/apt/lists/*
+        df -h / /home
+
     - name: ⏬ 下载 ImageBuilder
       run: |
         curl -L -o imagebuilder.tar.zst https://github.com/Kwonelee/iStoreOS-Actions/releases/download/iStoreOS-ImageBuilder/${{ inputs.build_version }}-istoreos-imagebuilder-armsr-armv8.Linux-x86_64.tar.zst
@@ -79,7 +85,8 @@ jobs:
         cp arm64/{build24.sh,Makefile} imagebuilder/
         #cp arm64/repositories.conf imagebuilder/
         cp shell/{prepare-packages.sh,custom-packages.sh} imagebuilder/
-        find files/packages/ -name "*.ipk" -exec cp {} imagebuilder/packages/ \;
+        # find files/packages/ -name "*.ipk" -exec cp {} imagebuilder/packages/ \;
+        # 注释掉本地ipk复制（精简版不需要，本地插件已删除）
         
         mkdir -p imagebuilder/files/etc/{uci-defaults,banner1}
         #添加开机启动脚本
@@ -106,6 +113,10 @@ jobs:
         cat repositories.conf
         echo "打印Makefile"
         cat Makefile |grep here
+        echo "检查磁盘空间"
+        df -h / /home
+        echo "开始构建（限制为2线程，减少内存压力）"
+        export MAKEFLAGS="-j2"
         bash ./build24.sh
 
     - name: 📦 打印产出rootfs
