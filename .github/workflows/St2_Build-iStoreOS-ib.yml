@@ -248,7 +248,7 @@ jobs:
           
           # 直接从 OpenWrt 官方下载基础 rootfs
           echo "从 OpenWrt 官方下载 rootfs..."
-          OPENWRT_URL="https://downloads.openwrt.org/releases/24.10.0/targets/armsr/armv8/openwrt-24.10.0-armsr-armv8-generic-rootfs.tar.gz"
+          OPENWRT_URL="https://downloads.openwrt.org/releases/24.10.0/targets/armsr/armv8/rootfs.tar.gz"
           echo "URL: $OPENWRT_URL"
           curl -L -o bin/targets/armsr/armv8/openwrt-armvirt-64-default-rootfs.tar.gz "$OPENWRT_URL" --max-time 300
           
