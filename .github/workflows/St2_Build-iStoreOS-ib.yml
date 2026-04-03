@@ -243,33 +243,16 @@ jobs:
 
       - name: ⏬ 下载 rootfs.tar.gz
         run: |
-          echo "📦 正在下载预构建 rootfs"
+          echo "📦 正在下载 rootfs"
           mkdir -p bin/targets/armsr/armv8
           
-          # 优先从自己的Release下载（St1产出），若失败则从上游下载
-          echo "尝试从个人Release下载..."
-          USER_URL="https://github.com/${{ github.actor }}/iStoreOS-Actions/releases/download/iStoreOS-${{ env.VERSION }}-${{ inputs.openwrt_rootfs }}-${{ inputs.network_settings }}/istoreos-armsr-armv8-generic-rootfs.tar.gz"
-          echo "URL: $USER_URL"
+          # 直接从 OpenWrt 官方下载基础 rootfs
+          echo "从 OpenWrt 官方下载 rootfs..."
+          OPENWRT_URL="https://downloads.openwrt.org/releases/24.10.0/targets/armsr/armv8/openwrt-24.10.0-armsr-armv8-generic-rootfs.tar.gz"
+          echo "URL: $OPENWRT_URL"
+          curl -L -o bin/targets/armsr/armv8/openwrt-armvirt-64-default-rootfs.tar.gz "$OPENWRT_URL" --max-time 300
           
-          if curl -sL -o bin/targets/armsr/armv8/openwrt-armvirt-64-default-rootfs.tar.gz "$USER_URL" --max-time 60; then
-            # 检查下载的文件是否是有效的gzip
-            if file bin/targets/armsr/armv8/openwrt-armvirt-64-default-rootfs.tar.gz | grep -q "gzip"; then
-              echo "✅ 成功从个人Release下载rootfs"
-            else
-              echo "❌ 个人Release下载的文件无效，尝试从上游Kwonelee下载..."
-              # 从上游Kwonelee仓库下载rootfs
-              UPSTREAM_URL="https://github.com/Kwonelee/iStoreOS-Actions/releases/download/iStoreOS-${{ env.VERSION }}-${{ inputs.openwrt_rootfs }}-${{ inputs.network_settings }}/istoreos-armsr-armv8-generic-rootfs.tar.gz"
-              echo "URL: $UPSTREAM_URL"
-              curl -sL -o bin/targets/armsr/armv8/openwrt-armvirt-64-default-rootfs.tar.gz "$UPSTREAM_URL" --max-time 180
-            fi
-          else
-            echo "❌ 个人Release下载失败，尝试从上游Kwonelee下载..."
-            UPSTREAM_URL="https://github.com/Kwonelee/iStoreOS-Actions/releases/download/iStoreOS-${{ env.VERSION }}-${{ inputs.openwrt_rootfs }}-${{ inputs.network_settings }}/istoreos-armsr-armv8-generic-rootfs.tar.gz"
-            echo "URL: $UPSTREAM_URL"
-            curl -sL -o bin/targets/armsr/armv8/openwrt-armvirt-64-default-rootfs.tar.gz "$UPSTREAM_URL" --max-time 180
-          fi
-          
-          # 验证最终下载的文件
+          # 验证下载的文件
           echo "📋 验证rootfs文件..."
           ls -lh bin/targets/armsr/armv8/openwrt-armvirt-64-default-rootfs.tar.gz
           file bin/targets/armsr/armv8/openwrt-armvirt-64-default-rootfs.tar.gz
