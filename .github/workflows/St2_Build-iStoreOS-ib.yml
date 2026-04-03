@@ -204,16 +204,21 @@ on:
       openwrt_kernel:
         description: "2、请选择内核版本"
         required: true
-        default: "6.6.y"
+        default: "6.6.132"
         type: choice
         options:
-          - 6.6.y
-          - 6.12.y
-          - 6.18.y
+          - 6.6.132
+          - 6.6.130
+          - 6.6.129
+          - 6.6.128
+          - 6.12.80
+          - 6.12.79
+          - 6.18.21
+          - 6.18.20
       auto_kernel:
-        description: "自动使用最新内核-未匹配则自动"
+        description: "未匹配内核版本时自动使用最新"
         required: false
-        default: true
+        default: false
         type: boolean
       openwrt_rootfs:
         description: "3、请选择Rootfs通用底包（先确保St1有执行）"
